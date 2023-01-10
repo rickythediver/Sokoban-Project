@@ -1,833 +1,466 @@
-﻿
+﻿using System;
+using System.Xml.Linq;
 
-
-using System;
-
-namespace prototype
+namespace Sokoban
 {
-    enum DIRECTION // DIRECTION 이라는 타입을 만들어줌
+    enum Direction // 방향을 저장하는 타입
     {
-        NONE = 0,
-        RIGHT = 1,
-        LEFT = 2,
-        UP = 3,
-        DOWN = 4
+        None,
+        Left,
+        Right,
+        Up,
+        Down
     }
 
-    enum POSITION // POSITION 이라는 타입을 만들어줌
+    class Sokoban
     {
-        NONE = 0,
-        RIGHT = 1,
-        LEFT = 2,
-        UP = 3,
-        DOWN = 4
-    }
-
-    enum REVERSE_DIRECTION
-    {
-        NONE = 0,
-        REVERSERIGHT = 1,
-        REVERSELEFT = 2,
-        REVERSEUP = 3,
-        REVERSEDOWN = 4
-    }
 
 
-    class program
-    {
+
+
         static void Main()
         {
-            #region 초기세팅
 
-            Console.ResetColor(); // 컬러를 초기화
-            Console.BackgroundColor = ConsoleColor.Blue; // 배경 색
-            Console.ForegroundColor = ConsoleColor.Yellow; // 글자 색
-            Console.CursorVisible = false; // 커서를 숨김
-            Console.Title = "어코반"; // 제목을 지어줌
-            Console.Clear(); // 원래 밑에 뜨는 그 뭐 많은 것들 지워주는거임
+            #region 함수 모음집
 
-            #endregion
+            // a와 b중에 최댓값을 구하는 함수
+            int Max(int a, int b)
+            {
+                return (a > b) ? a : b; // 이건 삼향연산자 쓴거임
+            }
 
-            #region 게임종료 시 ㅊㅋ메세지
-            string congrats = " ⊂_ヽ\r\n　 ＼＼ Λ＿Λ\r\n　　 ＼( ‘ㅅ’ ) 두둠칫\r\n　　　 >　⌒ヽ\r\n　　　/ 　 へ＼\r\n　　 /　　/　＼＼\r\n　　 ﾚ　ノ　　 ヽ_つ\r\n　　/　/두둠칫\r\n　 /　/|\r\n　(　(ヽ\r\n　|　|、＼\r\n　| 丿 ＼ ⌒)\r\n　| |　　) /\r\n`ノ )　　Lﾉ";
-            #endregion
+            // a 와 b중 최소값을 구하는 함수
+            int Min(int a, int b) => (a > b) ? b : a;
 
-            #region 변수 좌표 및 기호
 
-            #region 플레이어 기호 및 좌표
+            // 좌표가 주어지고 거기다 그리는 함수
+            void rendering(int a, int b, string text)
+            {
+                Console.SetCursorPosition(a, b);
+                Console.WriteLine(text);
+            }
 
-            const int playX = 1;
-            const int playY = 1;
-
-            int player_X = playX;
-            int player_Y = playY;
-            string player = "P";
-
-            #endregion
-
-            #region 맵 , 프레임 기호 및 좌표
-
-            const int Map_maxX = 30;
-            const int Map_minX = 1;
-            const int Map_maxY = 10;
-            const int Map_minY = 1;
-
-            string frame = "#";
-
-            #endregion
-
-            #region 박스 여러개 기호 및 좌표
-
-            string box = "B";
-
-            int box1_X = 2;
-            int box1_Y = 2;
-
-
-
-            int box2_X = 4;
-            int box2_Y = 4;
-
-
-            int box3_X = 6;
-            int box3_Y = 6;
-
-            int box4_X = 17;
-            int box4_Y = 7;
-
-            int box5_X = 15;
-            int box5_Y = 8;
-
-
-            int[] box_X = new int[] { box1_X, box2_X, box3_X, box4_X, box5_X };
-            int[] box_Y = new int[] { box1_Y, box2_Y, box3_Y, box4_Y, box5_Y };
-
-
-
-            #endregion
-
-            #region 나무들 기호 및 좌표
-
-            string tree = "♣";
-
-            const int tree1X = 3;
-            const int tree1Y = 4;
-
-            const int tree2X = 3;
-            const int tree2Y = 5;
-
-            const int tree3X = 3;
-            const int tree3Y = 6;
-
-            const int tree4X = 3;
-            const int tree4Y = 7;
-
-            const int tree5X = 13;
-            const int tree5Y = 1;
-
-            const int tree6X = 13;
-            const int tree6Y = 2;
-
-            const int tree7X = 13;
-            const int tree7Y = 3;
-
-            const int tree8X = 13;
-            const int tree8Y = 10;
-
-            const int tree9X = 13;
-            const int tree9Y = 9;
-
-            const int tree10X = 13;
-            const int tree10Y = 8;
-
-            const int tree11X = 13;
-            const int tree11Y = 7;
-
-            const int tree12X = 13;
-            const int tree12Y = 6;
-
-            const int tree13X = 13;
-            const int tree13Y = 5;
-
-
-            int[] tree_X = new int[] { tree1X, tree2X, tree3X, tree4X, tree5X, tree6X, tree7X, tree8X, tree9X, tree10X, tree11X, tree12X, tree13X };
-            int[] tree_Y = new int[] { tree1Y, tree2Y, tree3Y, tree4Y, tree5Y, tree6Y, tree7Y, tree8Y, tree9Y, tree10Y, tree11Y, tree12Y, tree13Y };
-
-            #endregion
-
-            #region goal 기호 및 좌표
-
-            string goal = "*";
-
-            const int goal1X = 8;
-            const int goal1Y = 1;
-
-            const int goal2X = 14;
-            const int goal2Y = 2;
-
-            const int goal3X = 4;
-            const int goal3Y = 8;
-
-            const int goal4X = 23;
-            const int goal4Y = 5;
-
-            const int goal5X = 27;
-            const int goal5Y = 6;
-
-
-
-            int[] goal_X = new int[] { goal1X, goal2X, goal3X, goal4X, goal5X };
-            int[] goal_Y = new int[] { goal1Y, goal2Y, goal3Y, goal4Y, goal5Y };
-
-            #endregion
-
-            #region DIRECTION 이라는 타입을 가진 객체를 초기화해줌
-            DIRECTION direction = default; // DIRECTION(열거형) 타입의 direction 이라는 객체를 초기화해줬음
-            #endregion
-
-            #region POSITION 이라는 타입을 가진 객체배열을 만들고 초기화해줌
-            POSITION[] position = new POSITION[box_X.Length];
-            #endregion
-
-            REVERSE_DIRECTION reverse_movement = REVERSE_DIRECTION.NONE;
-
-            #region 골안 박스 바꿔주는 기호
-            string success = "♬";
-            #endregion
-
-            #region 골 위 박스의 유무를 저장하는 배열
-            bool[] isboxongoal = new bool[box_X.Length]; // n번째 박스가 골위에 있는지를 저장하는 bool배열
-            #endregion
-
-            int movecount = 0; // 이동한 횟수를 저장하는 변수
-
-            #region 포탈 기호 및 좌표
-
-            string portal = "?";
-            const int portal1X = 5;
-            const int portal1Y = 8;
-
-            const int portal2X = 23;
-            const int portal2Y = 2;
-
-            int[] portal1_X = new int[] { portal1X, portal2X };
-            int[] portal1_Y = new int[] { portal1Y, portal2Y };
-
-            #endregion
-
-
-            #region 아이템 기호 및 좌표
-            string confusion = "♥";
-            int confusionX = 7;
-            int confusionY = 5;
-
-            bool ate = false;
-            int last = 0;
-            #endregion
-
-
-
-
-            #endregion
-
-            #region 게임루프
-
-            while (true)
+            // 끝나면 실행되는 함수
+            void finished()
             {
                 Console.Clear();
+                Console.WriteLine("ㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋ");
+            }
+
+            // 플레이어의 이동과 방향을 저장하는 함수
+
+
+            #endregion
+
+            #region 초기세팅
+
+            Console.ResetColor();                   // 컬러를 초기화 하는 것
+            Console.CursorVisible = false;          // 커서를 숨기기
+            Console.Title = "어우석의 소코반";    // 타이틀을 설정한다.
+            Console.BackgroundColor = ConsoleColor.White;   // 배경색을 설정한다.
+            Console.ForegroundColor = ConsoleColor.DarkYellow;      // 글꼴색을 설정한다.
+            Console.Clear();                                    // 출력된 내용을 지운다.
+            #endregion
+
+            #region 변수 정의
+
+            // 기호 상수 정의
+            const int GOAL_COUNT = 3;
+            const int BOX_COUNT = GOAL_COUNT;
+            const int WALL_COUNT = 2;
+
+            // 플레이어 위치를 저장하기 위한 변수
+            int playerX = 1;
+            int playerY = 1;
+
+            // 플레이어의 이동 방향을 저장하기 위한 변수
+            Direction playerMoveDirection = Direction.None;
+
+            // 플레이어가 무슨 박스를 밀고 있는지 저장하기 위한 변수
+            int pushedBoxId = 0; // 1이면 박스1, 2면 박스2
+
+            // 박스 위치를 저장하기 위한 변수
+            int[] boxPositionsX = { 5, 7, 4 };
+            int[] boxPositionsY = { 5, 3, 4 };
+
+            // 벽 위치를 저장하기 위한 변수
+            int[] wallPositionsX = { 7, 8 };
+            int[] wallPositionsY = { 7, 5 };
+
+            // 골 위치를 저장하기 위한 변수
+            int[] goalPositionsX = { 9, 1, 3 };
+            int[] goalPositionsY = { 9, 2, 3 };
+
+            // 박스가 골 위에 있는지를 저장하기 위한 변수
+            bool[] isBoxOnGoal = new bool[BOX_COUNT];
+
+            #endregion
+
+
+            // 게임 루프 구성
+            while (true)
+            {
 
                 #region 렌더링
+                Console.Clear();// 이전 프레임을 지운다.
 
-                Console.SetCursorPosition(Map_minX + 2, Map_maxY + 3);
-                Console.Write("'Space' = 당기기");
-
-                Console.SetCursorPosition(Map_minX + 2, Map_maxY + 4);
-                Console.Write("'A' = 발로 차기 ");
-
-                Console.SetCursorPosition(Map_minX + 2, Map_maxY + 5);
-                Console.Write("'?' = 포탈 ");
-
-                Console.SetCursorPosition(Map_minX + 2, Map_maxY + 8);
-                Console.Write("Hint = 13+26+4-30+3-12+7-6+1-2");
-
-                Console.SetCursorPosition(Map_maxX + 5, Map_minY + 2);
-                Console.Write($"움직인 횟수 = {movecount}");
-
-                #region 아이템 그려주기
-                if (ate == true)
+                // 골을 그린다.
+                for (int i = 0; i < GOAL_COUNT; ++i)
                 {
-                    // 한번 먹었으면 안그리기
-                }
-                else // 안먹었으면 그려주기
-                {
-                    Console.SetCursorPosition(confusionX, confusionY);
-                    Console.Write(confusion);
+                    int goalX = goalPositionsX[i];
+                    int goalY = goalPositionsY[i];
+
+                    rendering(goalX, goalY, "G");
+
+                    //Console.SetCursorPosition(goalX, goalY);
+                    //Console.Write("G");
                 }
 
-                Console.SetCursorPosition(Map_maxX + 5, 5);
-                Console.Write($"Confusion Left = {last}");
 
-                #endregion
+                // 플레이어를 그린다.
 
-                #region 프레임 그려주기
-                for (int i = 1; i < Map_maxY + 1; ++i) // Y축 그려주기 = X는 고정이고 Y만 달라지는거임
+                rendering(playerX, playerY, "P");
+
+                //Console.SetCursorPosition(playerX, playerY);
+                //Console.Write("P");
+
+
+                // 박스를 그린다.
+                for (int boxId = 0; boxId < BOX_COUNT; ++boxId)
                 {
-                    Console.SetCursorPosition(Map_minX - 1, i);
+                    int boxX = boxPositionsX[boxId];
+                    int boxY = boxPositionsY[boxId];
+
                     Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.Write(frame);
-                    Console.SetCursorPosition(Map_maxX + 1, i);
-                    Console.Write(frame);
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                }
+                    Console.SetCursorPosition(boxX, boxY);
 
-                for (int i = 1; i < Map_maxX + 3; ++i) // x축 그려주기 = y축은 고정이고 X만 달라지는거임
-                {
-                    Console.SetCursorPosition(i - 1, Map_minY - 1);
-                    Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.Write(frame);
-                    Console.SetCursorPosition(i - 1, Map_maxY + 1);
-                    Console.Write(frame);
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                }
-                #endregion
-
-                #region goal 여러개 그려주기
-
-                for (int i = 0; i < goal_X.Length; ++i)
-                {
-                    Console.SetCursorPosition(goal_X[i], goal_Y[i]);
-                    Console.Write(goal);
-
-                }
-
-                #endregion
-
-                #region 나무 여러개 그려주기
-                for (int i = 0; i < tree_X.Length; ++i)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.SetCursorPosition(tree_X[i], tree_Y[i]);
-
-                    
-                    Console.Write(tree);
-                    
-                }
-
-
-                Console.SetCursorPosition(13, 4); // 페이크 나무
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(tree);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-
-                #endregion
-
-                #region 플레이어 그려주기
-                Console.SetCursorPosition(player_X, player_Y);
-                Console.Write(player);
-                #endregion
-
-                #region 박스 그려주기 + 골에 박스가 들어가면 다른 아이가 출력되도록 그려주기
-
-                for (int k = 0; k < box_X.Length; ++k)
-                {
-                    Console.SetCursorPosition(box_X[k], box_Y[k]);
-
-                    if (isboxongoal[k])
+                    // 그려줘야함.
+                    if (isBoxOnGoal[boxId])
                     {
-                        Console.Write(success);
+
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        rendering(boxX, boxY, "☆");
+                        // Console.Write("☆");
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.Write(box);
-                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        rendering(boxX, boxY, "o");
+                        // Console.Write("o");
                     }
                 }
 
-
-
-                #endregion
-
-                #region 포탈 그려주기
-
-                for (int i = 0; i < portal1_X.Length; ++i)
+                // 벽을 그린다.
+                for (int wallId = 0; wallId < WALL_COUNT; ++wallId)
                 {
-                    Console.SetCursorPosition(portal1_X[i], portal1_Y[i]);
-                    Console.Write(portal);
+                    int wallX = wallPositionsX[wallId];
+                    int wallY = wallPositionsY[wallId];
+
+                    //Console.SetCursorPosition(wallX, wallY);
+                    //Console.Write("W");
+
+                    rendering(wallX, wallY, "W");
                 }
 
-                #endregion
+
+                // 바운더리를 그린다.
+                for (int i = 0; i < 21; ++i)
+                {
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    //Console.SetCursorPosition(i ,0); // x축 바운더리 그려주기
+                    //Console.Write("#");
+
+                    rendering(i, 0, "#"); // x축 바운더리 그려주기
+
+                    //Console.SetCursorPosition(i,11);
+                    //Console.Write("#");
+                    rendering(i, 11, "#");
+                }
+                for (int i = 0; i < 12; ++i)
+                {
+                    //Console.SetCursorPosition(0, i); // y축 바운더리 그려주기
+                    //Console.Write("#");
+                    rendering(0, i, "#");// y축 바운더리 그려주기
+
+                    //Console.SetCursorPosition(21, i);
+                    //Console.Write("#");
+                    rendering(21, i, "#");
+                }
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
 
                 #endregion
 
-                #region input
-                // 인풋
+                #region 인풋
 
                 ConsoleKey key = Console.ReadKey().Key;
+
                 #endregion
 
                 #region 업데이트
 
-                #region 이동한 횟수 측정하기
 
-                if (key == ConsoleKey.RightArrow || key == ConsoleKey.LeftArrow || key == ConsoleKey.UpArrow || key == ConsoleKey.DownArrow || key == ConsoleKey.Spacebar)
+                // 플레이어 이동 처리
+                //if (key == ConsoleKey.LeftArrow)
+                //{
+                //    playerX = Max(1, playerX - 1);
+                //    playerMoveDirection = Direction.Left;
+                //}
+
+                //if (key == ConsoleKey.RightArrow)
+                //{
+                //    playerX = Min(playerX + 1, 20);
+                //    playerMoveDirection = Direction.Right;
+                //}
+
+                //if (key == ConsoleKey.UpArrow)
+                //{
+                //    playerY = Max(1, playerY - 1);
+                //    playerMoveDirection = Direction.Up;
+                //}
+
+                //if (key == ConsoleKey.DownArrow)
+                //{
+                //    playerY = Min(playerY + 1, 10);
+                //    playerMoveDirection = Direction.Down;
+                //}
+
+                playercordirec(key, ref playerX, ref playerY, ref playerMoveDirection);
+
+                void playercordirec(ConsoleKey a, ref int b, ref int c, ref Direction d)
                 {
-                    ++movecount;
-                }
-
-                #endregion
-
-                #region 플레이어 이동 구현 + 플레이어가 포탈 타는 거 구현 +  아이템 먹으면 5프레임 반대로 움직임 구현
-
-                if (player_X == confusionX && player_Y == confusionY)
-                {
-                    ate = true;
-                    last = 5;
-                    confusionX = 50;
-                    confusionY = 50;
-                    Console.SetCursorPosition(confusionX, confusionY);
-
-
-                }
-
-                if (ate == true && 0 < last)
-                {
-                    if (key == ConsoleKey.RightArrow)
+                    if (a == ConsoleKey.LeftArrow)
                     {
-                        --player_X;
-                    }
-                    if (key == ConsoleKey.LeftArrow)
-                    {
-                        ++player_X;
-                    }
-                    if (key == ConsoleKey.UpArrow)
-                    {
-                        ++player_Y;
-                    }
-                    if (key == ConsoleKey.DownArrow)
-                    {
-                        --player_Y;
-                    }
-                    --last;
-                }
-                else
-                {
-                    if (key == ConsoleKey.RightArrow)
-                    {
-                        player_X = Math.Min(player_X + 1, Map_maxX);
-                        direction = DIRECTION.RIGHT;
-                        if (player_X == portal1_X[0] && player_Y == portal1_Y[0])
-                        {
-                            player_X = portal1_X[1] + 1;
-                            player_Y = portal1_Y[1];
-                        }
-                        else if (player_X == portal1_X[1] && player_Y == portal1_Y[1])
-                        {
-                            player_X = portal1_X[0] + 1;
-                            player_Y = portal1_Y[0];
-                        }
+                        b = Max(1, b - 1);
+                        d = Direction.Left;
                     }
 
-                    if (key == ConsoleKey.LeftArrow)
+                    if (a == ConsoleKey.RightArrow)
                     {
-                        player_X = Math.Max(player_X - 1, Map_minX);
-                        direction = DIRECTION.LEFT;
-                        if (player_X == portal1_X[0] && player_Y == portal1_Y[0])
-                        {
-                            player_X = portal1_X[1] - 1;
-                            player_Y = portal1_Y[1];
-                        }
-                        else if (player_X == portal1_X[1] && player_Y == portal1_Y[1])
-                        {
-                            player_X = portal1_X[0] - 1;
-                            player_Y = portal1_Y[0];
-                        }
+                        b = Min(b + 1, 20);
+                        d = Direction.Right;
                     }
 
-                    if (key == ConsoleKey.UpArrow)
+                    if (a == ConsoleKey.UpArrow)
                     {
-                        player_Y = Math.Max(player_Y - 1, Map_minY);
-                        direction = DIRECTION.UP;
-                        if (player_X == portal1_X[0] && player_Y == portal1_Y[0])
-                        {
-                            player_X = portal1_X[1];
-                            player_Y = portal1_Y[1] - 1;
-                        }
-                        else if (player_X == portal1_X[1] && player_Y == portal1_Y[1])
-                        {
-                            player_X = portal1_X[0];
-                            player_Y = portal1_Y[0] - 1;
-                        }
+                        c = Max(1, c - 1);
+                        d = Direction.Up;
                     }
 
-                    if (key == ConsoleKey.DownArrow)
+                    if (a == ConsoleKey.DownArrow)
                     {
-                        player_Y = Math.Min(player_Y + 1, Map_maxY);
-                        direction = DIRECTION.DOWN;
-                        if (player_X == portal1_X[0] && player_Y == portal1_Y[0])
-                        {
-                            player_X = portal1_X[1];
-                            player_Y = portal1_Y[1] + 1;
-                        }
-                        else if (player_X == portal1_X[1] && player_Y == portal1_Y[1])
-                        {
-                            player_X = portal1_X[0];
-                            player_Y = portal1_Y[0] + 1;
-                        }
+                        c = Min(c + 1, 10);
+                        d = Direction.Down;
                     }
                 }
 
 
-                #endregion
-
-                #region 플레이어와 박스의 상대적인 위치 정의
 
 
-                for (int i = 0; i < box_X.Length; ++i)
+                // 플레이어와 벽의 충돌 처리
+                for (int wallId = 0; wallId < WALL_COUNT; ++wallId)
                 {
-                    if (player_Y == box_Y[i] && player_X == box_X[i] + 1)
-                    {
-                        position[i] = POSITION.RIGHT;
-                        break;
-                    }
+                    int wallX = wallPositionsX[wallId];
+                    int wallY = wallPositionsY[wallId];
 
-                    else if (player_Y == box_Y[i] && player_X == box_X[i] - 1)
+                    if (playerX == wallX && playerY == wallY)
                     {
-                        position[i] = POSITION.LEFT;
-                        break;
-                    }
+                        switch (playerMoveDirection)
+                        {
+                            case Direction.Left:
+                                playerX = wallX + 1;
+                                break;
+                            case Direction.Right:
+                                playerX = wallX - 1;
+                                break;
+                            case Direction.Up:
+                                playerY = wallY + 1;
+                                break;
+                            case Direction.Down:
+                                playerY = wallY - 1;
+                                break;
+                            default:
+                                Console.Clear();
+                                Console.WriteLine($"[Error] 플레이어 이동 방향 데이터가 오류입니다. : {playerMoveDirection}");
 
-                    else if (player_X == box_X[i] && player_Y == box_Y[i] + 1)
-                    {
-                        position[i] = POSITION.DOWN;
-                        break;
-                    }
+                                return;
+                        }
 
-                    else if (player_X == box_X[i] && player_Y == box_Y[i] - 1)
-                    {
-                        position[i] = POSITION.UP;
                         break;
                     }
                 }
-                #endregion
 
-                #region 플레이어가 박스 여러개 미는 거 구현 + 박스도 벽에 막힘
-
-                for (int i = 0; i < box_X.Length; ++i)
+                // 박스 이동 처리
+                // 플레이어가 박스를 밀었을 때라는 게 무엇을 의미하는가? => 플레이어가 이동했는데 플레이어의 위치와 박스 위치가 겹쳤다.
+                for (int i = 0; i < BOX_COUNT; ++i)
                 {
+                    int boxX = boxPositionsX[i];
+                    int boxY = boxPositionsY[i];
 
-                    if (player_X == box_X[i] && player_Y == box_Y[i])
+                    if (playerX == boxX && playerY == boxY)
                     {
-                        switch (direction)
+                        // 박스를 민다. => 박스의 좌표를 바꾼다.
+                        switch (playerMoveDirection)
                         {
-                            case DIRECTION.RIGHT:
-
-                                box_X[i] = Math.Min(player_X + 1, Map_maxX);
-                                player_X = box_X[i] - 1;
-                                if (box_X[i] == portal1_X[0] && box_Y[i] == portal1_Y[0])
-                                {
-                                    box_X[i] = portal1_X[1] + 1;
-                                    box_Y[i] = portal1_Y[1];
-                                }
-                                else if (box_X[i] == portal1_X[1] && box_Y[i] == portal1_Y[1])
-                                {
-                                    box_X[i] = portal1_X[0] + 1;
-                                    box_Y[i] = portal1_Y[0];
-                                }
+                            case Direction.Left:
+                                boxX = Math.Max(1, boxX - 1);
+                                playerX = boxX + 1;
                                 break;
-
-                            case DIRECTION.LEFT:
-
-                                box_X[i] = Math.Max(player_X - 1, Map_minX);
-                                player_X = box_X[i] + 1;
-                                if (box_X[i] == portal1_X[0] && box_Y[i] == portal1_Y[0])
-                                {
-                                    box_X[i] = portal1_X[1] - 1;
-                                    box_Y[i] = portal1_Y[1];
-                                }
-                                else if (box_X[i] == portal1_X[1] && box_Y[i] == portal1_Y[1])
-                                {
-                                    box_X[i] = portal1_X[0] - 1;
-                                    box_Y[i] = portal1_Y[0];
-                                }
+                            case Direction.Right:
+                                boxX = Math.Min(boxX + 1, 20);
+                                playerX = boxX - 1;
                                 break;
-
-                            case DIRECTION.UP:
-
-                                box_Y[i] = Math.Max(player_Y - 1, Map_minY);
-                                player_Y = box_Y[i] + 1;
-                                if (box_X[i] == portal1_X[0] && box_Y[i] == portal1_Y[0])
-                                {
-                                    box_Y[i] = portal1_Y[1] - 1;
-                                    box_X[i] = portal1_X[1];
-                                }
-                                else if (box_X[i] == portal1_X[1] && box_Y[i] == portal1_Y[1])
-                                {
-                                    box_Y[i] = portal1_Y[0] - 1;
-                                    box_X[i] = portal1_X[0];
-                                }
+                            case Direction.Up:
+                                boxY = Math.Max(1, boxY - 1);
+                                playerY = boxY + 1;
                                 break;
-
-                            case DIRECTION.DOWN:
-
-                                box_Y[i] = Math.Min(player_Y + 1, Map_maxY);
-                                player_Y = box_Y[i] - 1;
-                                if (box_X[i] == portal1_X[0] && box_Y[i] == portal1_Y[0])
-                                {
-                                    box_Y[i] = portal1_Y[1] + 1;
-                                    box_X[i] = portal1_X[1];
-                                }
-                                else if (box_X[i] == portal1_X[1] && box_Y[i] == portal1_Y[1])
-                                {
-                                    box_Y[i] = portal1_Y[0] + 1;
-                                    box_X[i] = portal1_X[0];
-                                }
+                            case Direction.Down:
+                                boxY = Math.Min(boxY + 1, 10);
+                                playerY = boxY - 1;
                                 break;
+                            default:
+                                Console.Clear();
+                                Console.WriteLine($"[Error] 플레이어 이동 방향 데이터가 오류입니다. : {playerMoveDirection}");
+
+                                return;
                         }
-                    }
-                }
-                #endregion
 
-                #region 박스 당기기 구현
-                for (int i = 0; i < box_X.Length; ++i)
-                {
-
-                    if (key == ConsoleKey.Spacebar)
-                    {
-                        switch (position[i])
-                        {
-                            case POSITION.RIGHT:
-
-                                player_X = Math.Min(player_X + 1, Map_maxX);
-                                box_X[i] = player_X - 1;
-                                break;
-
-                            case POSITION.LEFT:
-
-                                player_X = Math.Max(player_X - 1, Map_minX);
-                                box_X[i] = player_X + 1;
-                                break;
-
-                            case POSITION.UP:
-
-                                player_Y = Math.Max(player_Y - 1, Map_minY);
-                                box_Y[i] = player_Y + 1;
-                                break;
-
-                            case POSITION.DOWN:
-
-                                player_Y = Math.Min(player_Y + 1, Map_maxY);
-                                box_Y[i] = player_Y - 1;
-                                break;
-                        }
+                        pushedBoxId = i;
                     }
 
+                    boxPositionsX[i] = boxX;
+                    boxPositionsY[i] = boxY;
                 }
-                #endregion
 
-                #region 박스 차기 구현
-                for (int i = 0; i < box_X.Length; ++i)
+                for (int boxId = 0; boxId < BOX_COUNT; ++boxId)
                 {
+                    int boxX = boxPositionsX[boxId];
+                    int boxY = boxPositionsY[boxId];
 
-                    if (key == ConsoleKey.A)
+                    // 박스와 벽의 충돌 처리
+                    for (int wallId = 0; wallId < WALL_COUNT; ++wallId)
                     {
-                        switch (position[i])
+                        int wallX = wallPositionsX[wallId];
+                        int wallY = wallPositionsY[wallId];
+
+                        if (boxX == wallX && boxY == wallY)
                         {
-                            case POSITION.RIGHT:
-
-
-                                box_X[i] = Map_minX;
-
-                                break;
-
-                            case POSITION.LEFT:
-
-                                box_X[i] = Map_maxX;
-
-                                break;
-
-                            case POSITION.UP:
-
-                                box_Y[i] = Map_maxY;
-
-                                break;
-
-                            case POSITION.DOWN:
-
-                                box_Y[i] = Map_minY;
-
-                                break;
-                        }
-                    }
-                    position[i] = POSITION.NONE;
-                }
-                #endregion
-
-                #region 플레이어가 나무에 막히는 거 구현
-
-                for (int i = 0; i < tree_X.Length; ++i)
-                {
-                    for (int k = 0; k < box_X.Length; ++k)
-                    {
-                        if (player_X == tree_X[i] && player_Y == tree_Y[i])
-                        {
-                            switch (direction)
+                            switch (playerMoveDirection)
                             {
-                                case DIRECTION.LEFT:
-
-                                    player_X = tree_X[i] + 1;
+                                case Direction.Left:
+                                    boxX = wallX + 1;
+                                    playerX = boxX + 1;
                                     break;
-
-                                case DIRECTION.RIGHT:
-
-                                    player_X = tree_X[i] - 1;
+                                case Direction.Right:
+                                    boxX = wallX - 1;
+                                    playerX = boxX - 1;
                                     break;
-
-                                case DIRECTION.UP:
-
-                                    player_Y = tree_Y[i] + 1;
+                                case Direction.Up:
+                                    boxY = wallY + 1;
+                                    playerY = boxY + 1;
                                     break;
-
-                                case DIRECTION.DOWN:
-
-                                    player_Y = tree_Y[i] - 1;
+                                case Direction.Down:
+                                    boxY = wallY - 1;
+                                    playerY = boxY - 1;
                                     break;
+                                default:
+                                    Console.Clear();
+                                    Console.WriteLine($"[Error] 플레이어 이동 방향 데이터가 오류입니다. : {playerMoveDirection}");
 
+                                    return;
                             }
 
-                        }
-                    }
-                }
+                            boxPositionsX[boxId] = boxX;
+                            boxPositionsY[boxId] = boxY;
 
-                #endregion
-
-                #region 박스가 나무에 막히는 거 구현
-                for (int i = 0; i < tree_X.Length; ++i)
-                {
-                    for (int k = 0; k < box_X.Length; ++k)
-                    {
-                        if (box_X[k] == tree_X[i] && box_Y[k] == tree_Y[i])
-                        {
-                            switch (direction)
-                            {
-
-                                case DIRECTION.RIGHT:
-
-                                    box_X[k] = tree_X[i] - 1;
-                                    player_X = box_X[k] - 1;
-                                    break;
-
-                                case DIRECTION.LEFT:
-
-                                    box_X[k] = tree_X[i] + 1;
-                                    player_X = box_X[k] + 1;
-                                    break;
-
-                                case DIRECTION.UP:
-
-                                    box_Y[k] = tree_Y[i] + 1;
-                                    player_Y = box_Y[k] + 1;
-                                    break;
-
-                                case DIRECTION.DOWN:
-
-                                    box_Y[k] = tree_Y[i] - 1;
-                                    player_Y = box_Y[k] - 1;
-                                    break;
-                            }
-                        }
-                    }
-                }
-                #endregion
-
-                #region 박스끼리 밀면 막히는 거 구현
-
-                for (int i = 0; i < box_X.Length; ++i)
-                {
-                    for (int k = 0; k < box_X.Length; ++k)
-                    {
-                        if (k != i && box_X[k] == box_X[i] && box_Y[k] == box_Y[i])
-                        {
-                            switch (direction)
-                            {
-                                case DIRECTION.RIGHT:
-
-                                    box_X[i] = box_X[k] - 1;
-                                    --player_X;
-                                    break;
-
-                                case DIRECTION.LEFT:
-
-                                    box_X[i] = box_X[k] + 1;
-                                    ++player_X;
-                                    break;
-
-                                case DIRECTION.UP:
-
-                                    box_Y[i] = box_Y[k] + 1;
-                                    ++player_Y;
-                                    break;
-
-                                case DIRECTION.DOWN:
-
-                                    box_Y[i] = box_Y[k] - 1;
-                                    --player_Y;
-                                    break;
-                            }
-                        }
-                    }
-                }
-                #endregion
-
-                #region 골에 박스 넣으면 끝나는 거 구현
-                int count = 0;
-
-                for (int i = 0; i < box_X.Length; ++i)
-                {
-                    isboxongoal[i] = false;
-
-                    for (int k = 0; k < goal_X.Length; ++k)
-                    {
-                        if (box_X[i] == goal_X[k] && box_Y[i] == goal_Y[k])
-                        {
-                            ++count;
-                            isboxongoal[i] = true;
-                            // n번째 박스가 골 위에 있는지를 저장
                             break;
-                            // break를 넣어주는 이유는 어차피 골하나에 박스는 하나밖에 못올라가니까, 박스 하나가 올려진게 확인이 되었으면 나머지 박스는 검사 안해도됌
+                        }
+                    }
 
+                }
+
+                // 박스끼리 충돌 처리
+                for (int collidedBoxId = 0; collidedBoxId < BOX_COUNT; ++collidedBoxId)
+                {
+                    // 같은 박스라면 처리할 필요가 X
+                    if (pushedBoxId == collidedBoxId)
+                    {
+                        continue;
+                    }
+
+                    // 두 개의 박스가 부딪혔을 때
+                    if (boxPositionsX[pushedBoxId] == boxPositionsX[collidedBoxId] && boxPositionsY[pushedBoxId] == boxPositionsY[collidedBoxId])
+                    {
+                        switch (playerMoveDirection)
+                        {
+                            case Direction.Left:
+                                boxPositionsX[pushedBoxId] = boxPositionsX[collidedBoxId] + 1;
+                                playerX = boxPositionsX[pushedBoxId] + 1;
+
+                                break;
+                            case Direction.Right:
+                                boxPositionsX[pushedBoxId] = boxPositionsX[collidedBoxId] - 1;
+                                playerX = boxPositionsX[pushedBoxId] - 1;
+
+                                break;
+                            case Direction.Up:
+                                boxPositionsY[pushedBoxId] = boxPositionsY[collidedBoxId] + 1;
+                                playerY = boxPositionsY[pushedBoxId] + 1;
+
+                                break;
+                            case Direction.Down:
+                                boxPositionsY[pushedBoxId] = boxPositionsY[collidedBoxId] - 1;
+                                playerY = boxPositionsY[pushedBoxId] - 1;
+
+                                break;
+                            default:
+                                Console.Clear();
+                                Console.WriteLine($"[Error] 플레이어 이동 방향 데이터가 오류입니다. : {playerMoveDirection}");
+
+                                return;
+                        }
+
+                        break;
+                    }
+                }
+
+                // 박스와 골의 처리
+                int boxOnGoalCount = 0;
+
+                // 골 지점에 박스에 존재하냐?
+                for (int boxId = 0; boxId < BOX_COUNT; ++boxId) // 모든 골 지점에 대해서
+                {
+                    // 현재 박스가 골 위에 올라와 있는지 체크한다.
+                    isBoxOnGoal[boxId] = false; // 없을 가능성이 높기 때문에 false로 초기화 한다.
+
+                    for (int goalId = 0; goalId < GOAL_COUNT; ++goalId) // 모든 박스에 대해서
+                    {
+                        // 박스가 골 지점 위에 있는지 확인한다.
+                        if (boxPositionsX[goalId] == goalPositionsX[boxId] && boxPositionsY[goalId] == goalPositionsY[boxId])
+                        {
+                            ++boxOnGoalCount;
+
+                            isBoxOnGoal[goalId] = true; // 박스가 골 위에 있다는 사실을 저장해둔다.
+
+                            break;
                         }
                     }
                 }
 
-                if (count == goal_X.Length)
+                // 모든 골 지점에 박스가 올라와 있다면?
+                if (boxOnGoalCount == GOAL_COUNT)
                 {
+                    //Console.Clear();
+                    //Console.WriteLine("ㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋㅊㅋㅊ.");
+                    finished();
+
                     break;
                 }
-
-                #endregion
-
-
-
 
 
 
                 #endregion
             }
-
-            #endregion
-
-            // 목적 달성하면 나오는 화면
-            Console.Clear();
-            Console.WriteLine(congrats);
-
-            
         }
+
 
     }
 }
-
-
-
-
-
